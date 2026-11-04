@@ -1,19 +1,36 @@
 import { Module } from '@nestjs/common';
-import { createObserveModule } from '@nestjs/observe';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-export const { ObserveModule, ObserveInstrument } = createObserveModule();
-
 @Module({
   imports: [
-    // Distributed tracing, auto-correlated logs, request/job metrics, error
-    // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com,
-    // then run `npx @nestjs/observe link` to write your key pair into .env.
-    ObserveModule.forRoot({
-      appKey: process.env.OBSERVE_APP_KEY ?? 'YOUR_APP_KEY',
-      appSecret: process.env.OBSERVE_APP_SECRET ?? 'YOUR_APP_SECRET',
-      serviceId: 'backend',
+    // Charge le fichier .env et rend les variables disponibles partout
+    // (isGlobal : pas besoin de ré-importer ConfigModule dans chaque module)
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
+    // Connexion à PostgreSQL via TypeORM
+    // forRootAsync : on attend que le .env soit chargé avant de lire les valeurs
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
+
+        // Charge automatiquement les entités déclarées dans les modules
+        autoLoadEntities: true,
+
+        // DÉSACTIVÉ volontairement : on utilisera des migrations
+        // (synchronize pourrait supprimer des colonnes ou des données)
+        synchronize: false,
+      }),
     }),
   ],
   controllers: [AppController],

@@ -7,6 +7,10 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
+"migration:generate": "npm run typeorm -- migration:generate",
+"migration:run": "npm run typeorm -- migration:run",
+"migration:revert": "npm run typeorm -- migration:revert",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -27,6 +31,7 @@
     "@nestjs/observe": "^0.3.0",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/typeorm": "^12.0.2",
+    "dotenv": "^18.0.9",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
