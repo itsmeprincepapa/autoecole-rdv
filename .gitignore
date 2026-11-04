@@ -1,0 +1,28 @@
+# =========================================
+# Fichiers à ne JAMAIS envoyer sur GitHub
+# =========================================
+
+# Dépendances (réinstallables avec npm install)
+node_modules/
+
+# Fichiers de configuration secrets (mots de passe, clés JWT...)
+# On garde uniquement .env.example, qui ne contient aucun vrai secret
+.env
+.env.*
+!.env.example
+
+# Code compilé
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Fichiers propres au système et aux éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+
+# Couverture de tests
+coverage/

@@ -1,0 +1,37 @@
+# =========================================
+# Services nécessaires au développement
+# Lancer :  docker compose up -d
+# Arrêter : docker compose down
+# =========================================
+
+services:
+  postgres:
+    # Version 16 de PostgreSQL, image officielle et légère
+    image: postgres:16-alpine
+    container_name: autoecole_postgres
+    restart: unless-stopped
+
+    # Les valeurs viennent automatiquement du fichier .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    # Port de ta machine : port du conteneur
+    # 127.0.0.1 = la base n'est accessible que depuis ton ordinateur
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
+
+    # Les données sont conservées même si le conteneur est supprimé
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # Docker vérifie régulièrement que la base répond bien
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
