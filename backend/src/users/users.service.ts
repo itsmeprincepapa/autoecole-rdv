@@ -42,4 +42,14 @@ export class UsersService {
   async update(id: string, data: Partial<User>): Promise<void> {
     await this.usersRepository.update(id, data);
   }
+
+    // Retrouve un utilisateur avec son code de vérification haché
+  // (à utiliser uniquement pour vérifier le code)
+  findByEmailWithVerification(email: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.verificationCodeHash')
+      .where('user.email = :email', { email })
+      .getOne();
+  }
 }
