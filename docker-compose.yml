@@ -17,7 +17,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
 
-    # Port de ta machine : port du conteneur
     # 127.0.0.1 = la base n'est accessible que depuis ton ordinateur
     ports:
       - "127.0.0.1:${POSTGRES_PORT}:5432"
@@ -32,6 +31,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  mailpit:
+    # Faux serveur d'email pour le développement
+    image: axllent/mailpit
+    container_name: autoecole_mailpit
+    restart: unless-stopped
+    ports:
+      # Interface web pour lire les emails : http://localhost:8025
+      - "127.0.0.1:8025:8025"
+      # Port SMTP sur lequel NestJS enverra les emails
+      - "127.0.0.1:1025:1025"
 
 volumes:
   postgres_data:
