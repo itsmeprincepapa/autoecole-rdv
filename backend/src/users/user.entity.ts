@@ -40,6 +40,23 @@ export class User {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+    // --- Vérification de l'email ---
+  // Code à 6 chiffres haché (SHA-256), jamais stocké en clair
+  @Column({ type: 'varchar', length: 64, nullable: true, select: false })
+  verificationCodeHash: string | null;
+
+  // Le code expire 10 minutes après son envoi
+  @Column({ type: 'timestamptz', nullable: true })
+  verificationExpiresAt: Date | null;
+
+  // Nombre de tentatives ratées (le code est invalidé après 5)
+  @Column({ type: 'int', default: 0 })
+  verificationAttempts: number;
+
+  // Date du dernier envoi, pour limiter les renvois (1 par minute)
+  @Column({ type: 'timestamptz', nullable: true })
+  verificationSentAt: Date | null;
+
   // timestamptz = date avec fuseau horaire (stockée en UTC)
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
