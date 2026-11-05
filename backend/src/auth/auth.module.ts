@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
 @Module({
-  // On importe UsersModule pour pouvoir utiliser UsersService dans AuthService
-  imports: [UsersModule],
+  // UsersModule : accès aux utilisateurs / MailModule : envoi des emails
+  imports: [UsersModule, MailModule],
   controllers: [AuthController],
   providers: [AuthService],
 })

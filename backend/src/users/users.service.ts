@@ -37,4 +37,9 @@ export class UsersService {
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);
   }
+
+    // Met à jour certains champs d'un utilisateur
+  async update(id: string, data: Partial<User>): Promise<void> {
+    await this.usersRepository.update(id, data);
+  }
 }
