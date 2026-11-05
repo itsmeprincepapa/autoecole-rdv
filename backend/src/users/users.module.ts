@@ -4,9 +4,9 @@ import { User } from './user.entity';
 import { UsersService } from './users.service';
 
 @Module({
-  // Déclare l'entité User : avec autoLoadEntities, TypeORM la détecte
   imports: [TypeOrmModule.forFeature([User])],
-  exports: [TypeOrmModule],
   providers: [UsersService],
+  // On exporte le service pour que AuthModule puisse l'utiliser
+  exports: [TypeOrmModule, UsersService],
 })
 export class UsersModule {}
