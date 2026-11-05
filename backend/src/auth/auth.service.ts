@@ -1,16 +1,21 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { UserRole } from '../users/user-role.enum';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
+import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -24,6 +29,8 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -50,6 +57,47 @@ export class AuthService {
     return {
       message: 'Compte créé. Un code de vérification a été envoyé par email.',
       email: user.email,
+    };
+  }
+
+  async login(dto: LoginDto) {
+    const email = dto.email.toLowerCase().trim();
+    const user = await this.usersService.findByEmailWithPassword(email);
+
+    // Même message si l'email n'existe pas ou si le mot de passe est faux
+    const invalid = new UnauthorizedException('Email ou mot de passe incorrect');
+    if (!user) throw invalid;
+
+    const passwordOk = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!passwordOk) throw invalid;
+
+    // Ces vérifications viennent APRÈS le mot de passe : on ne révèle
+    // l'état du compte qu'à quelqu'un qui connaît le bon mot de passe
+    if (!user.emailVerified) {
+      throw new ForbiddenException('Email non vérifié');
+    }
+    if (!user.isActive) {
+      throw new ForbiddenException('Compte désactivé');
+    }
+
+    // Le serveur fabrique le token et le renvoie, comme dans Postman
+    const accessToken = await this.jwtService.signAsync(
+      { sub: user.id, role: user.role },
+      {
+        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    return {
+      accessToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
     };
   }
 
