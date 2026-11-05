@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
+  HttpStatus,
   Injectable,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -10,6 +12,7 @@ import { UserRole } from '../users/user-role.enum';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { ResendCodeDto } from './dto/resend-code.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
 // Hachage SHA-256 du code : suffisant pour un code court et de durée limitée
@@ -84,6 +87,32 @@ export class AuthService {
     });
 
     return { message: 'Email vérifié. Vous pouvez vous connecter.' };
+  }
+
+  async resendCode(dto: ResendCodeDto) {
+    const email = dto.email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(email);
+
+    // Réponse identique dans tous les cas : on ne révèle pas si l'email existe
+    const response = {
+      message: 'Si un compte non vérifié existe, un nouveau code a été envoyé.',
+    };
+
+    if (!user || user.emailVerified) return response;
+
+    // Délai minimum d'une minute entre deux envois
+    if (
+      user.verificationSentAt &&
+      Date.now() - user.verificationSentAt.getTime() < 60 * 1000
+    ) {
+      throw new HttpException(
+        'Patientez une minute avant de redemander un code',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    await this.sendVerificationCode(user);
+    return response;
   }
 
   // Génère un code, le stocke haché, puis l'envoie par email
