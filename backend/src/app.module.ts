@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { TokensModule } from './tokens/tokens.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
+
 @Module({
   imports: [
     // Charge le fichier .env et rend les variables disponibles partout
@@ -33,6 +35,8 @@ import { TokensModule } from './tokens/tokens.module';
     UsersModule,
 
     TokensModule,
+
+    VehiclesModule,
 
     AuthModule,
 
