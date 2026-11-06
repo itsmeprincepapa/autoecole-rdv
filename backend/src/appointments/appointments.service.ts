@@ -1,14 +1,26 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, EntityManager } from 'typeorm';
 import { HoursService } from '../hours/hours.service';
 import { HoursMovementType } from '../hours/hours-movement-type.enum';
+import { UserRole } from '../users/user-role.enum';
+import { AppointmentStatus } from './appointment-status.enum';
 import { Appointment } from './appointment.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { SlotsService } from './slots.service';
+
+// Délai minimum pour une annulation avec remboursement
+const FREE_CANCELLATION_HOURS = 24;
+
+interface Actor {
+  id: string;
+  role: UserRole;
+}
 
 @Injectable()
 export class AppointmentsService {
@@ -25,7 +37,7 @@ export class AppointmentsService {
     }
 
     // Le créneau demandé doit faire partie des créneaux libres calculés par le serveur
-    const date = await this.localDate(startsAt);
+    const date = this.localDate(startsAt);
     const freeSlots = await this.slotsService.getFreeSlots(
       dto.instructorId,
       date,
@@ -40,7 +52,6 @@ export class AppointmentsService {
 
     try {
       return await this.dataSource.transaction(async (manager) => {
-        // Véhicule libre choisi par le serveur
         const vehicleId = await this.pickFreeVehicle(manager, startsAt, endsAt);
 
         const appointment = await manager.save(
@@ -73,8 +84,7 @@ export class AppointmentsService {
         };
       });
     } catch (error) {
-      // 23P01 = violation de la contrainte d'exclusion PostgreSQL :
-      // quelqu'un a réservé ce créneau entre-temps
+      // 23P01 = violation de la contrainte d'exclusion PostgreSQL
       if ((error as { code?: string }).code === '23P01') {
         throw new ConflictException("Ce créneau vient d'être réservé");
       }
@@ -82,20 +92,93 @@ export class AppointmentsService {
     }
   }
 
+  // Annulation : l'élève (les siens) ou le gérant (tous)
+  async cancel(actor: Actor, appointmentId: string) {
+    return this.dataSource.transaction(async (manager) => {
+      // Verrou sur la ligne : deux annulations simultanées ne remboursent pas deux fois
+      const appointment = await manager.findOne(Appointment, {
+        where: { id: appointmentId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      // Même réponse si le rendez-vous n'existe pas ou n'appartient pas à l'élève
+      const notFound = new NotFoundException('Rendez-vous introuvable');
+      if (!appointment) throw notFound;
+      if (actor.role === UserRole.STUDENT && appointment.studentId !== actor.id) {
+        throw notFound;
+      }
+      if (
+        actor.role !== UserRole.STUDENT &&
+        actor.role !== UserRole.ADMIN
+      ) {
+        throw new ForbiddenException('Accès refusé');
+      }
+
+      if (appointment.status !== AppointmentStatus.CONFIRMED) {
+        throw new BadRequestException(
+          "Ce rendez-vous ne peut plus être annulé",
+        );
+      }
+      if (appointment.startsAt <= new Date()) {
+        throw new BadRequestException('Ce rendez-vous est déjà passé');
+      }
+
+      // Heures restantes avant la leçon
+      const hoursLeft =
+        (appointment.startsAt.getTime() - Date.now()) / (60 * 60 * 1000);
+      // Le gérant rembourse toujours ; l'élève seulement s'il annule à temps
+      const refund =
+        actor.role === UserRole.ADMIN || hoursLeft >= FREE_CANCELLATION_HOURS;
+
+      await manager.update(Appointment, appointment.id, {
+        status: AppointmentStatus.CANCELLED,
+        cancelledAt: new Date(),
+      });
+
+      if (refund) {
+        await this.hoursService.applyMovement(manager, {
+          studentId: appointment.studentId,
+          createdById: actor.id,
+          type: HoursMovementType.REFUND,
+          amount: 1,
+          reason:
+            actor.role === UserRole.ADMIN
+              ? 'Annulation par le gérant'
+              : 'Annulation à temps',
+          appointmentId: appointment.id,
+        });
+      }
+
+      return {
+        message: refund
+          ? 'Rendez-vous annulé, 1 heure rendue.'
+          : 'Rendez-vous annulé tardivement, l\'heure est perdue.',
+        refunded: refund,
+      };
+    });
+  }
+
+  // Rendez-vous de l'élève connecté
+  mine(studentId: string) {
+    return this.dataSource.getRepository(Appointment).find({
+      where: { studentId },
+      order: { startsAt: 'DESC' },
+    });
+  }
+
   // Date locale (AAAA-MM-JJ) de l'auto-école pour un instant donné
-  private async localDate(at: Date): Promise<string> {
-    const parts = new Intl.DateTimeFormat('en-CA', {
+  private localDate(at: Date): string {
+    return new Intl.DateTimeFormat('en-CA', {
       timeZone: this.slotsService.timeZone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
     }).format(at);
-    return parts; // format AAAA-MM-JJ
   }
 
   // Premier véhicule disponible sans rendez-vous non annulé sur la plage
   private async pickFreeVehicle(
-    manager: import('typeorm').EntityManager,
+    manager: EntityManager,
     startsAt: Date,
     endsAt: Date,
   ): Promise<string> {
