@@ -8,7 +8,9 @@ import {
 import { DataSource, EntityManager } from 'typeorm';
 import { HoursService } from '../hours/hours.service';
 import { HoursMovementType } from '../hours/hours-movement-type.enum';
+import { MailService } from '../mail/mail.service';
 import { UserRole } from '../users/user-role.enum';
+import { User } from '../users/user.entity';
 import { AppointmentStatus } from './appointment-status.enum';
 import { Appointment } from './appointment.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -28,6 +30,7 @@ export class AppointmentsService {
     private readonly dataSource: DataSource,
     private readonly slotsService: SlotsService,
     private readonly hoursService: HoursService,
+    private readonly mailService: MailService,
   ) {}
 
   async book(studentId: string, dto: CreateAppointmentDto) {
@@ -50,8 +53,17 @@ export class AppointmentsService {
     }
     const endsAt = new Date(wanted.endsAt);
 
+    let result: {
+      id: string;
+      instructorId: string;
+      vehicleId: string;
+      startsAt: Date;
+      endsAt: Date;
+      status: AppointmentStatus;
+    };
+
     try {
-      return await this.dataSource.transaction(async (manager) => {
+      result = await this.dataSource.transaction(async (manager) => {
         const vehicleId = await this.pickFreeVehicle(manager, startsAt, endsAt);
 
         const appointment = await manager.save(
@@ -90,11 +102,29 @@ export class AppointmentsService {
       }
       throw error;
     }
+
+    // Email APRÈS la transaction : un échec d'envoi n'annule pas la réservation
+    const [student, instructor] = await Promise.all([
+      this.dataSource.getRepository(User).findOne({ where: { id: studentId } }),
+      this.dataSource
+        .getRepository(User)
+        .findOne({ where: { id: dto.instructorId } }),
+    ]);
+    if (student) {
+      await this.mailService.sendBookingConfirmation(student.email, {
+        startsAt: result.startsAt,
+        instructorName: instructor
+          ? `${instructor.firstName} ${instructor.lastName}`
+          : 'Votre moniteur',
+      });
+    }
+
+    return result;
   }
 
   // Annulation : l'élève (les siens) ou le gérant (tous)
   async cancel(actor: Actor, appointmentId: string) {
-    return this.dataSource.transaction(async (manager) => {
+    const outcome = await this.dataSource.transaction(async (manager) => {
       // Verrou sur la ligne : deux annulations simultanées ne remboursent pas deux fois
       const appointment = await manager.findOne(Appointment, {
         where: { id: appointmentId },
@@ -107,17 +137,12 @@ export class AppointmentsService {
       if (actor.role === UserRole.STUDENT && appointment.studentId !== actor.id) {
         throw notFound;
       }
-      if (
-        actor.role !== UserRole.STUDENT &&
-        actor.role !== UserRole.ADMIN
-      ) {
+      if (actor.role !== UserRole.STUDENT && actor.role !== UserRole.ADMIN) {
         throw new ForbiddenException('Accès refusé');
       }
 
       if (appointment.status !== AppointmentStatus.CONFIRMED) {
-        throw new BadRequestException(
-          "Ce rendez-vous ne peut plus être annulé",
-        );
+        throw new BadRequestException('Ce rendez-vous ne peut plus être annulé');
       }
       if (appointment.startsAt <= new Date()) {
         throw new BadRequestException('Ce rendez-vous est déjà passé');
@@ -150,12 +175,29 @@ export class AppointmentsService {
       }
 
       return {
-        message: refund
-          ? 'Rendez-vous annulé, 1 heure rendue.'
-          : 'Rendez-vous annulé tardivement, l\'heure est perdue.',
-        refunded: refund,
+        studentId: appointment.studentId,
+        startsAt: appointment.startsAt,
+        refund,
       };
     });
+
+    // Email APRÈS la transaction
+    const student = await this.dataSource
+      .getRepository(User)
+      .findOne({ where: { id: outcome.studentId } });
+    if (student) {
+      await this.mailService.sendCancellationNotice(student.email, {
+        startsAt: outcome.startsAt,
+        refunded: outcome.refund,
+      });
+    }
+
+    return {
+      message: outcome.refund
+        ? 'Rendez-vous annulé, 1 heure rendue.'
+        : "Rendez-vous annulé tardivement, l'heure est perdue.",
+      refunded: outcome.refund,
+    };
   }
 
   // Rendez-vous de l'élève connecté

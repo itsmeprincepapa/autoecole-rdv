@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Availability } from '../availability/availability.entity';
 import { HoursModule } from '../hours/hours.module';
+import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { Vehicle } from '../vehicles/vehicle.entity';
 import { Appointment } from './appointment.entity';
@@ -15,6 +16,7 @@ import { SlotsService } from './slots.service';
     TypeOrmModule.forFeature([Appointment, Availability, Vehicle]),
     UsersModule,
     HoursModule,
+    MailModule,
   ],
   controllers: [SlotsController, AppointmentsController],
   providers: [SlotsService, AppointmentsService],
