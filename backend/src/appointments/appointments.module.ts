@@ -5,6 +5,8 @@ import { HoursModule } from '../hours/hours.module';
 import { MailModule } from '../mail/mail.module';
 import { UsersModule } from '../users/users.module';
 import { Vehicle } from '../vehicles/vehicle.entity';
+import { AdminController } from './admin.controller';
+import { AdminService } from './admin.service';
 import { Appointment } from './appointment.entity';
 import { AppointmentsController } from './appointments.controller';
 import { AppointmentsService } from './appointments.service';
@@ -20,8 +22,13 @@ import { SlotsService } from './slots.service';
     HoursModule,
     MailModule,
   ],
-  controllers: [SlotsController, AppointmentsController, ScheduleController],
-  providers: [SlotsService, AppointmentsService, ScheduleService],
+  controllers: [
+    SlotsController,
+    AppointmentsController,
+    ScheduleController,
+    AdminController,
+  ],
+  providers: [SlotsService, AppointmentsService, ScheduleService, AdminService],
   exports: [TypeOrmModule, SlotsService, AppointmentsService],
 })
 export class AppointmentsModule {}
