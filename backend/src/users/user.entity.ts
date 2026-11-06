@@ -61,6 +61,9 @@ export class User {
   @Column({ type: 'varchar', length: 64, nullable: true, select: false })
   refreshTokenHash: string | null;
 
+    // Heures de conduite restantes (mis à jour avec chaque mouvement)
+  @Column({ type: 'int', default: 0 })
+  hoursBalance: number;
   
   // timestamptz = date avec fuseau horaire (stockée en UTC)
   @CreateDateColumn({ type: 'timestamptz' })

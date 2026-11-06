@@ -10,6 +10,7 @@ import { TokensModule } from './tokens/tokens.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { HoursModule } from './hours/hours.module';
 
 @Module({
   imports: [
@@ -43,6 +44,8 @@ import { AppointmentsModule } from './appointments/appointments.module';
     AvailabilityModule,
 
     AppointmentsModule,
+
+    HoursModule,
 
     AuthModule,
 
