@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { UserRole } from '../users/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
@@ -32,13 +33,15 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  // POST /auth/register
+  // POST /auth/register : 5 essais par minute et par IP
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  // POST /auth/login
+  // POST /auth/login : 5 essais par minute et par IP
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
@@ -60,14 +63,16 @@ export class AuthController {
     return this.authService.logout(req.user.id);
   }
 
-  // POST /auth/forgot-password
+  // POST /auth/forgot-password : 5 demandes par minute et par IP
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('forgot-password')
   @HttpCode(200)
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
-  // POST /auth/reset-password
+  // POST /auth/reset-password : 5 essais par minute et par IP
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('reset-password')
   @HttpCode(200)
   resetPassword(@Body() dto: ResetPasswordDto) {
@@ -89,7 +94,8 @@ export class AuthController {
     return this.authService.acceptInvitation(dto);
   }
 
-  // POST /auth/verify-email
+  // POST /auth/verify-email : 5 essais par minute et par IP
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('verify-email')
   @HttpCode(200)
   verifyEmail(@Body() dto: VerifyEmailDto) {
@@ -116,13 +122,5 @@ export class AuthController {
       lastName: user.lastName,
       role: user.role,
     };
-  }
-
-  // GET /auth/admin-test : ROUTE TEMPORAIRE, réservée au gérant
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @Get('admin-test')
-  adminTest() {
-    return { message: 'Bienvenue, gérant.' };
   }
 }
