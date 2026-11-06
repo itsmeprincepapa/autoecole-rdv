@@ -12,13 +12,17 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomInt, timingSafeEqual } from 'crypto';
 import { MailService } from '../mail/mail.service';
+import { TokenType } from '../tokens/token-type.enum';
+import { TokensService } from '../tokens/tokens.service';
 import { UserRole } from '../users/user-role.enum';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
 // Hachage SHA-256 : suffisant pour un code court ou un token déjà aléatoire
@@ -30,6 +34,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    private readonly tokensService: TokensService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
   ) {}
@@ -118,14 +123,65 @@ export class AuthService {
     if (!ok) throw invalid;
 
     // Rotation : un nouveau refresh token remplace l'ancien
-    const tokens = await this.issueTokens(user);
-    return tokens;
+    return this.issueTokens(user);
   }
 
   // Déconnexion : on efface l'empreinte, le refresh token ne marche plus
   async logout(userId: string) {
     await this.usersService.update(userId, { refreshTokenHash: null });
     return { message: 'Déconnecté' };
+  }
+
+  // Demande de réinitialisation : réponse identique que l'email existe ou non
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const email = dto.email.toLowerCase().trim();
+    const user = await this.usersService.findByEmail(email);
+
+    const response = {
+      message:
+        'Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.',
+    };
+
+    // Comptes inconnus, non vérifiés ou désactivés : même réponse, aucun email
+    if (!user || !user.emailVerified || !user.isActive) return response;
+
+    const token = await this.tokensService.create(
+      user.id,
+      TokenType.PASSWORD_RESET,
+      30,
+    );
+    const frontendUrl = this.config.get<string>('FRONTEND_URL');
+    const link = `${frontendUrl}/reset-password?token=${token}`;
+
+    await this.mailService.sendPasswordReset(user.email, link);
+    return response;
+  }
+
+  // Choix du nouveau mot de passe à partir du lien reçu par email
+  async resetPassword(dto: ResetPasswordDto) {
+    const userId = await this.tokensService.consume(
+      dto.token,
+      TokenType.PASSWORD_RESET,
+    );
+    if (!userId) {
+      throw new BadRequestException('Lien invalide ou expiré');
+    }
+
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.isActive) {
+      throw new BadRequestException('Lien invalide ou expiré');
+    }
+
+    // Nouveau mot de passe haché + révocation du refresh token (sessions coupées)
+    await this.usersService.update(userId, {
+      passwordHash: await bcrypt.hash(dto.newPassword, 12),
+      refreshTokenHash: null,
+    });
+
+    await this.mailService.sendPasswordChanged(user.email);
+
+    // Pas de connexion automatique : l'utilisateur repasse par le login
+    return { message: 'Mot de passe modifié. Vous pouvez vous connecter.' };
   }
 
   // Fabrique access + refresh token et enregistre l'empreinte du refresh

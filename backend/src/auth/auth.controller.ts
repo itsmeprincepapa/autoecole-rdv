@@ -11,10 +11,12 @@ import {
 import { UserRole } from '../users/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { Roles } from './roles.decorator';
@@ -41,7 +43,7 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  // POST /auth/refresh : nouveau couple de tokens à partir du refresh token
+  // POST /auth/refresh
   @Post('refresh')
   @HttpCode(200)
   refresh(@Body() dto: RefreshDto) {
@@ -54,6 +56,20 @@ export class AuthController {
   @HttpCode(200)
   logout(@Req() req: { user: { id: string } }) {
     return this.authService.logout(req.user.id);
+  }
+
+  // POST /auth/forgot-password : demande du lien de réinitialisation
+  @Post('forgot-password')
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  // POST /auth/reset-password : choix du nouveau mot de passe
+  @Post('reset-password')
+  @HttpCode(200)
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   // POST /auth/verify-email
