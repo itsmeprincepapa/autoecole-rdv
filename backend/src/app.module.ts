@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
-
+import { TokensModule } from './tokens/tokens.module';
 @Module({
   imports: [
     // Charge le fichier .env et rend les variables disponibles partout
@@ -31,6 +31,8 @@ import { MailModule } from './mail/mail.module';
 
     // Notre module des utilisateurs
     UsersModule,
+
+    TokensModule,
 
     AuthModule,
 
