@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { UserRole } from './user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -60,5 +61,35 @@ export class UsersService {
       .addSelect('user.refreshTokenHash')
       .where('user.id = :id', { id })
       .getOne();
+  }
+
+    // Liste paginée, sans aucun champ sensible (select: false les exclut déjà)
+  async list(role: UserRole | undefined, page: number, limit: number) {
+    const [items, total] = await this.usersRepository.findAndCount({
+      where: role ? { role } : {},
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        emailVerified: true,
+        isActive: true,
+        hoursBalance: true,
+        createdAt: true,
+      },
+    });
+    return { items, total, page, limit };
+  }
+
+  // Active ou désactive un compte. Désactiver coupe aussi la session.
+  async setActive(id: string, isActive: boolean): Promise<void> {
+    await this.usersRepository.update(
+      id,
+      isActive ? { isActive } : { isActive, refreshTokenHash: null },
+    );
   }
 }
