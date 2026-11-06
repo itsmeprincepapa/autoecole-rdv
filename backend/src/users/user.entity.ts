@@ -57,6 +57,11 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   verificationSentAt: Date | null;
 
+    // Empreinte SHA-256 du refresh token en cours (null = déconnecté)
+  @Column({ type: 'varchar', length: 64, nullable: true, select: false })
+  refreshTokenHash: string | null;
+
+  
   // timestamptz = date avec fuseau horaire (stockée en UTC)
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;

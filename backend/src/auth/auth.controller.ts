@@ -12,6 +12,7 @@ import { UserRole } from '../users/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
@@ -38,6 +39,21 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  // POST /auth/refresh : nouveau couple de tokens à partir du refresh token
+  @Post('refresh')
+  @HttpCode(200)
+  refresh(@Body() dto: RefreshDto) {
+    return this.authService.refresh(dto);
+  }
+
+  // POST /auth/logout : route protégée, invalide le refresh token
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Req() req: { user: { id: string } }) {
+    return this.authService.logout(req.user.id);
   }
 
   // POST /auth/verify-email
@@ -70,7 +86,6 @@ export class AuthController {
   }
 
   // GET /auth/admin-test : ROUTE TEMPORAIRE, réservée au gérant
-  // L'ordre des guards compte : d'abord JWT (qui es-tu ?), puis rôles (as-tu le droit ?)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('admin-test')

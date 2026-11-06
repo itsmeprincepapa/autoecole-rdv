@@ -52,4 +52,13 @@ export class UsersService {
       .where('user.email = :email', { email })
       .getOne();
   }
+
+    // Retrouve un utilisateur avec l'empreinte de son refresh token
+  findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.refreshTokenHash')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
 }

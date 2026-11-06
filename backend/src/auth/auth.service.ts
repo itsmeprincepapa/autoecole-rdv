@@ -16,11 +16,12 @@ import { UserRole } from '../users/user-role.enum';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
-// Hachage SHA-256 du code : suffisant pour un code court et de durée limitée
+// Hachage SHA-256 : suffisant pour un code court ou un token déjà aléatoire
 const hashCode = (code: string) =>
   createHash('sha256').update(code).digest('hex');
 
@@ -71,8 +72,7 @@ export class AuthService {
     const passwordOk = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordOk) throw invalid;
 
-    // Ces vérifications viennent APRÈS le mot de passe : on ne révèle
-    // l'état du compte qu'à quelqu'un qui connaît le bon mot de passe
+    // Ces vérifications viennent APRÈS le mot de passe
     if (!user.emailVerified) {
       throw new ForbiddenException('Email non vérifié');
     }
@@ -80,17 +80,10 @@ export class AuthService {
       throw new ForbiddenException('Compte désactivé');
     }
 
-    // Le serveur fabrique le token et le renvoie, comme dans Postman
-    const accessToken = await this.jwtService.signAsync(
-      { sub: user.id, role: user.role },
-      {
-        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
-        expiresIn: '15m',
-      },
-    );
+    const tokens = await this.issueTokens(user);
 
     return {
-      accessToken,
+      ...tokens,
       user: {
         id: user.id,
         email: user.email,
@@ -101,11 +94,69 @@ export class AuthService {
     };
   }
 
+  // Échange un refresh token valide contre une nouvelle paire de tokens
+  async refresh(dto: RefreshDto) {
+    const invalid = new UnauthorizedException('Session invalide, reconnectez-vous');
+
+    let payload: { sub: string };
+    try {
+      payload = await this.jwtService.verifyAsync(dto.refreshToken, {
+        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch {
+      throw invalid;
+    }
+
+    const user = await this.usersService.findByIdWithRefreshToken(payload.sub);
+    if (!user || !user.isActive || !user.refreshTokenHash) throw invalid;
+
+    // Le token présenté doit être celui enregistré (comparaison en temps constant)
+    const expected = Buffer.from(user.refreshTokenHash);
+    const received = Buffer.from(hashCode(dto.refreshToken));
+    const ok =
+      expected.length === received.length && timingSafeEqual(expected, received);
+    if (!ok) throw invalid;
+
+    // Rotation : un nouveau refresh token remplace l'ancien
+    const tokens = await this.issueTokens(user);
+    return tokens;
+  }
+
+  // Déconnexion : on efface l'empreinte, le refresh token ne marche plus
+  async logout(userId: string) {
+    await this.usersService.update(userId, { refreshTokenHash: null });
+    return { message: 'Déconnecté' };
+  }
+
+  // Fabrique access + refresh token et enregistre l'empreinte du refresh
+  private async issueTokens(user: User) {
+    const accessToken = await this.jwtService.signAsync(
+      { sub: user.id, role: user.role },
+      {
+        secret: this.config.get<string>('JWT_ACCESS_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    const refreshToken = await this.jwtService.signAsync(
+      { sub: user.id },
+      {
+        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '7d',
+      },
+    );
+
+    await this.usersService.update(user.id, {
+      refreshTokenHash: hashCode(refreshToken),
+    });
+
+    return { accessToken, refreshToken };
+  }
+
   async verifyEmail(dto: VerifyEmailDto) {
     const email = dto.email.toLowerCase().trim();
     const user = await this.usersService.findByEmailWithVerification(email);
 
-    // Message identique pour tous les échecs : on ne révèle rien à un pirate
     const invalid = new BadRequestException('Code invalide ou expiré');
 
     if (!user || user.emailVerified || !user.verificationCodeHash) throw invalid;
@@ -113,7 +164,6 @@ export class AuthService {
       throw invalid;
     if (user.verificationAttempts >= 5) throw invalid;
 
-    // Comparaison en temps constant
     const expected = Buffer.from(user.verificationCodeHash);
     const received = Buffer.from(hashCode(dto.code));
     const ok =
@@ -126,7 +176,6 @@ export class AuthService {
       throw invalid;
     }
 
-    // Succès : compte vérifié, code effacé
     await this.usersService.update(user.id, {
       emailVerified: true,
       verificationCodeHash: null,
@@ -141,14 +190,12 @@ export class AuthService {
     const email = dto.email.toLowerCase().trim();
     const user = await this.usersService.findByEmail(email);
 
-    // Réponse identique dans tous les cas : on ne révèle pas si l'email existe
     const response = {
       message: 'Si un compte non vérifié existe, un nouveau code a été envoyé.',
     };
 
     if (!user || user.emailVerified) return response;
 
-    // Délai minimum d'une minute entre deux envois
     if (
       user.verificationSentAt &&
       Date.now() - user.verificationSentAt.getTime() < 60 * 1000
@@ -165,7 +212,6 @@ export class AuthService {
 
   // Génère un code, le stocke haché, puis l'envoie par email
   private async sendVerificationCode(user: User): Promise<void> {
-    // randomInt est cryptographiquement sûr (contrairement à Math.random)
     const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
 
     await this.usersService.update(user.id, {
