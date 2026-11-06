@@ -59,4 +59,14 @@ export class MailService {
     `;
     await this.send(to, 'Votre mot de passe a été modifié', html);
   }
+
+    // Invitation envoyée à un moniteur par le gérant
+  async sendInstructorInvitation(to: string, link: string): Promise<void> {
+    const html = `
+      <p>Vous avez été invité(e) à rejoindre l'auto-école en tant que moniteur.</p>
+      <p><a href="${link}">Cliquez ici pour activer votre compte et choisir votre mot de passe</a></p>
+      <p>Ce lien est valable 48 heures et ne peut servir qu'une fois.</p>
+    `;
+    await this.send(to, 'Invitation à rejoindre l\'auto-école', html);
+  }
 }

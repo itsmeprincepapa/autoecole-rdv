@@ -11,7 +11,9 @@ import {
 import { UserRole } from '../users/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { InviteInstructorDto } from './dto/invite-instructor.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -58,18 +60,33 @@ export class AuthController {
     return this.authService.logout(req.user.id);
   }
 
-  // POST /auth/forgot-password : demande du lien de réinitialisation
+  // POST /auth/forgot-password
   @Post('forgot-password')
   @HttpCode(200)
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
-  // POST /auth/reset-password : choix du nouveau mot de passe
+  // POST /auth/reset-password
   @Post('reset-password')
   @HttpCode(200)
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  // POST /auth/invite-instructor : réservé au gérant
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('invite-instructor')
+  inviteInstructor(@Body() dto: InviteInstructorDto) {
+    return this.authService.inviteInstructor(dto);
+  }
+
+  // POST /auth/accept-invitation : public, protégé par le token du lien
+  @Post('accept-invitation')
+  @HttpCode(200)
+  acceptInvitation(@Body() dto: AcceptInvitationDto) {
+    return this.authService.acceptInvitation(dto);
   }
 
   // POST /auth/verify-email

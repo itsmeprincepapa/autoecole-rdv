@@ -10,14 +10,16 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { createHash, randomInt, timingSafeEqual } from 'crypto';
+import { createHash, randomBytes, randomInt, timingSafeEqual } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { TokenType } from '../tokens/token-type.enum';
 import { TokensService } from '../tokens/tokens.service';
 import { UserRole } from '../users/user-role.enum';
 import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
+import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { InviteInstructorDto } from './dto/invite-instructor.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -182,6 +184,64 @@ export class AuthService {
 
     // Pas de connexion automatique : l'utilisateur repasse par le login
     return { message: 'Mot de passe modifié. Vous pouvez vous connecter.' };
+  }
+
+  // Le gérant invite un moniteur : compte créé sans mot de passe utilisable
+  async inviteInstructor(dto: InviteInstructorDto) {
+    const email = dto.email.toLowerCase().trim();
+
+    const existing = await this.usersService.findByEmail(email);
+    if (existing) {
+      throw new ConflictException('Cet email est déjà utilisé');
+    }
+
+    // Mot de passe aléatoire que personne ne connaît : le moniteur
+    // le remplacera en acceptant l'invitation
+    const unusablePassword = randomBytes(32).toString('hex');
+
+    const user = await this.usersService.create({
+      email,
+      firstName: dto.firstName.trim(),
+      lastName: dto.lastName.trim(),
+      passwordHash: await bcrypt.hash(unusablePassword, 12),
+      role: UserRole.INSTRUCTOR,
+      emailVerified: false,
+      isActive: true,
+    });
+
+    const token = await this.tokensService.create(
+      user.id,
+      TokenType.INVITATION,
+      48 * 60,
+    );
+    const link = `${this.config.get<string>('FRONTEND_URL')}/accept-invitation?token=${token}`;
+    await this.mailService.sendInstructorInvitation(user.email, link);
+
+    return { message: 'Invitation envoyée.', email: user.email };
+  }
+
+  // Le moniteur choisit son mot de passe depuis le lien reçu
+  async acceptInvitation(dto: AcceptInvitationDto) {
+    const userId = await this.tokensService.consume(
+      dto.token,
+      TokenType.INVITATION,
+    );
+    if (!userId) {
+      throw new BadRequestException('Invitation invalide ou expirée');
+    }
+
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.isActive || user.role !== UserRole.INSTRUCTOR) {
+      throw new BadRequestException('Invitation invalide ou expirée');
+    }
+
+    // Recevoir le lien par email prouve la possession de l'adresse
+    await this.usersService.update(userId, {
+      passwordHash: await bcrypt.hash(dto.password, 12),
+      emailVerified: true,
+    });
+
+    return { message: 'Compte activé. Vous pouvez vous connecter.' };
   }
 
   // Fabrique access + refresh token et enregistre l'empreinte du refresh
