@@ -11,6 +11,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { HoursModule } from './hours/hours.module';
+import { ProgressModule } from './progress/progress.module';
 
 @Module({
   imports: [
@@ -46,6 +47,8 @@ import { HoursModule } from './hours/hours.module';
     AppointmentsModule,
 
     HoursModule,
+
+    ProgressModule,
 
     AuthModule,
 
