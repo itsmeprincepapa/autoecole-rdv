@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { TokensModule } from './tokens/tokens.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { AvailabilityModule } from './availability/availability.module';
 
 @Module({
   imports: [
@@ -37,6 +38,8 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     TokensModule,
 
     VehiclesModule,
+
+    AvailabilityModule,
 
     AuthModule,
 
