@@ -9,6 +9,7 @@ import { MailModule } from './mail/mail.module';
 import { TokensModule } from './tokens/tokens.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { AppointmentsModule } from './appointments/appointments.module';
 
 @Module({
   imports: [
@@ -40,6 +41,8 @@ import { AvailabilityModule } from './availability/availability.module';
     VehiclesModule,
 
     AvailabilityModule,
+
+    AppointmentsModule,
 
     AuthModule,
 
