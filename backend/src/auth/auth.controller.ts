@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { UserRole } from '../users/user-role.enum';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
@@ -15,6 +16,8 @@ import { RegisterDto } from './dto/register.dto';
 import { ResendCodeDto } from './dto/resend-code.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 // Toutes les routes de ce contrôleur commencent par /auth
 @Controller('auth')
@@ -64,5 +67,14 @@ export class AuthController {
       lastName: user.lastName,
       role: user.role,
     };
+  }
+
+  // GET /auth/admin-test : ROUTE TEMPORAIRE, réservée au gérant
+  // L'ordre des guards compte : d'abord JWT (qui es-tu ?), puis rôles (as-tu le droit ?)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Get('admin-test')
+  adminTest() {
+    return { message: 'Bienvenue, gérant.' };
   }
 }
