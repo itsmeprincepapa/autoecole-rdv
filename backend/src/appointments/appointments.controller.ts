@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/roles.guard';
 import { UserRole } from '../users/user-role.enum';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { CompleteAppointmentDto } from './dto/complete-appointment.dto';
 
 type AuthRequest = { user: { id: string; role: UserRole } };
 
@@ -47,5 +48,16 @@ export class AppointmentsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.appointmentsService.cancel(req.user, id);
+  }
+    // POST /appointments/:id/complete : le moniteur concerné (ou le gérant)
+  @Roles(UserRole.INSTRUCTOR, UserRole.ADMIN)
+  @Post(':id/complete')
+  @HttpCode(200)
+  complete(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CompleteAppointmentDto,
+  ) {
+    return this.appointmentsService.complete(req.user, id, dto);
   }
 }

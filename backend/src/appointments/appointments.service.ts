@@ -15,6 +15,7 @@ import { AppointmentStatus } from './appointment-status.enum';
 import { Appointment } from './appointment.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { SlotsService } from './slots.service';
+import { CompleteAppointmentDto } from './dto/complete-appointment.dto';
 
 // Délai minimum pour une annulation avec remboursement
 const FREE_CANCELLATION_HOURS = 24;
@@ -198,6 +199,43 @@ export class AppointmentsService {
         : "Rendez-vous annulé tardivement, l'heure est perdue.",
       refunded: outcome.refund,
     };
+  }
+
+    // Clôture d'une leçon : le moniteur concerné (ou le gérant)
+  async complete(actor: Actor, appointmentId: string, dto: CompleteAppointmentDto) {
+    return this.dataSource.transaction(async (manager) => {
+      const appointment = await manager.findOne(Appointment, {
+        where: { id: appointmentId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      // Même réponse si le rendez-vous n'existe pas ou n'appartient pas au moniteur
+      const notFound = new NotFoundException('Rendez-vous introuvable');
+      if (!appointment) throw notFound;
+      if (
+        actor.role === UserRole.INSTRUCTOR &&
+        appointment.instructorId !== actor.id
+      ) {
+        throw notFound;
+      }
+      if (actor.role !== UserRole.INSTRUCTOR && actor.role !== UserRole.ADMIN) {
+        throw new ForbiddenException('Accès refusé');
+      }
+
+      if (appointment.status !== AppointmentStatus.CONFIRMED) {
+        throw new BadRequestException('Cette leçon est déjà clôturée ou annulée');
+      }
+      if (appointment.startsAt > new Date()) {
+        throw new BadRequestException("Cette leçon n'a pas encore commencé");
+      }
+
+      await manager.update(Appointment, appointment.id, {
+        status: dto.status,
+        notes: dto.notes?.trim() || null,
+      });
+
+      return { id: appointment.id, status: dto.status };
+    });
   }
 
   // Rendez-vous de l'élève connecté

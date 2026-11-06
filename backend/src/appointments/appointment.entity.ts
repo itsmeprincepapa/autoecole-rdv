@@ -59,6 +59,10 @@ export class Appointment {
   @Column({ type: 'timestamptz', nullable: true })
   cancelledAt: Date | null;
 
+    // Observations du moniteur après la leçon
+  @Column({ type: 'text', nullable: true })
+  notes: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
