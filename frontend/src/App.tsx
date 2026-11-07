@@ -1,44 +1,15 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/useAuth';
+import { homePath } from './lib/roles';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 
-// Pages provisoires : remplacées par les vraies à partir de la tâche 64
+// "/" envoie vers l'espace de l'utilisateur, ou vers la connexion
 function Home() {
   const { user, loading } = useAuth();
-
-  return (
-    <div className="mx-auto max-w-xl p-8">
-      <h1 className="text-3xl font-bold text-blue-700">Auto-école</h1>
-      <p className="mt-2 text-slate-600">
-        Plateforme de réservation de leçons de conduite.
-      </p>
-
-      <p className="mt-4 rounded border border-slate-300 bg-white p-3 text-sm">
-        {loading
-          ? 'Chargement de la session...'
-          : user
-            ? `Connecté : ${user.firstName} ${user.lastName} (${user.role})`
-            : 'Non connecté'}
-      </p>
-
-      <Link
-        to="/login"
-        className="mt-6 inline-block rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-      >
-        Aller à la connexion
-      </Link>
-    </div>
-  );
-}
-
-function Login() {
-  return (
-    <div className="mx-auto max-w-xl p-8">
-      <h1 className="text-2xl font-bold">Connexion</h1>
-      <Link to="/" className="mt-4 inline-block text-blue-600 underline">
-        Retour à l'accueil
-      </Link>
-    </div>
-  );
+  if (loading) return <p className="p-8 text-slate-600">Chargement...</p>;
+  return <Navigate to={user ? homePath(user.role) : '/login'} replace />;
 }
 
 export default function App() {
@@ -46,6 +17,34 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+
+      <Route
+        path="/student"
+        element={
+          <ProtectedRoute roles={['student']}>
+            <Dashboard title="Espace élève" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/instructor"
+        element={
+          <ProtectedRoute roles={['instructor']}>
+            <Dashboard title="Espace moniteur" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute roles={['admin']}>
+            <Dashboard title="Espace gérant" />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Toute autre adresse : retour à l'accueil */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
