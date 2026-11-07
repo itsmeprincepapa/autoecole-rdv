@@ -4,6 +4,8 @@ import { useAuth } from './auth/useAuth';
 import { homePath } from './lib/roles';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 
 // "/" envoie vers l'espace de l'utilisateur, ou vers la connexion
 function Home() {
@@ -17,6 +19,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
       <Route
         path="/student"
