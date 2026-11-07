@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddAppointmentExclusionConstraints1730000000001
+export class AddAppointmentExclusionConstraints1793962391932
   implements MigrationInterface
 {
-  name = 'AddAppointmentExclusionConstraints1730000000001';
+  name = 'AddAppointmentExclusionConstraints1793962391932';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // btree_gist permet de combiner "égalité" et "chevauchement" dans une contrainte

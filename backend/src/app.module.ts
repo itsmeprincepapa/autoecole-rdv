@@ -22,8 +22,14 @@ import { VehiclesModule } from './vehicles/vehicles.module';
       isGlobal: true,
     }),
 
-    // Limitation de débit globale : 100 requêtes par minute et par adresse IP
-    ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 100 }]),
+    // Limite assouplie en mode test (NODE_ENV=test, défini dans test/setup-env.ts)
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,
+        limit: process.env.NODE_ENV === 'test' ? 100_000 : 100,
+      },
+    ]),
 
     // Connexion à PostgreSQL via TypeORM
     TypeOrmModule.forRootAsync({

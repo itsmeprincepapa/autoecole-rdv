@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddHoursBalanceCheck1730000000002 implements MigrationInterface {
-  name = 'AddHoursBalanceCheck1730000000002';
+export class AddHoursBalanceCheck1793971444945 implements MigrationInterface {
+  name = 'AddHoursBalanceCheck1793971444945';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Même si le code a un bug, la base refuse un solde négatif

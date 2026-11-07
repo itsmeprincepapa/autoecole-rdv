@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddEvaluationLevelCheck1730000000003 implements MigrationInterface {
-  name = 'AddEvaluationLevelCheck1730000000003';
+export class AddEvaluationLevelCheck1793999557625 implements MigrationInterface {
+  name = 'AddEvaluationLevelCheck1793999557625';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

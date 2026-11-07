@@ -25,6 +25,9 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 
+// 5 par minute en production, quasi illimité en test
+const AUTH_LIMIT = process.env.NODE_ENV === 'test' ? 100_000 : 5;
+
 // Toutes les routes de ce contrôleur commencent par /auth
 @Controller('auth')
 export class AuthController {
@@ -33,15 +36,15 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  // POST /auth/register : 5 essais par minute et par IP
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // POST /auth/register
+  @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  // POST /auth/login : 5 essais par minute et par IP
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // POST /auth/login
+  @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
@@ -63,16 +66,16 @@ export class AuthController {
     return this.authService.logout(req.user.id);
   }
 
-  // POST /auth/forgot-password : 5 demandes par minute et par IP
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // POST /auth/forgot-password
+  @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('forgot-password')
   @HttpCode(200)
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return this.authService.forgotPassword(dto);
   }
 
-  // POST /auth/reset-password : 5 essais par minute et par IP
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // POST /auth/reset-password
+  @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('reset-password')
   @HttpCode(200)
   resetPassword(@Body() dto: ResetPasswordDto) {
@@ -94,8 +97,8 @@ export class AuthController {
     return this.authService.acceptInvitation(dto);
   }
 
-  // POST /auth/verify-email : 5 essais par minute et par IP
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  // POST /auth/verify-email
+  @Throttle({ default: { limit: AUTH_LIMIT, ttl: 60_000 } })
   @Post('verify-email')
   @HttpCode(200)
   verifyEmail(@Body() dto: VerifyEmailDto) {
