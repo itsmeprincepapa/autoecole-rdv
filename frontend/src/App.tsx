@@ -5,16 +5,18 @@ import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 
-// "/" envoie vers l'espace de l'utilisateur, ou vers la connexion
+// "/" : page d'accueil pour les visiteurs, espace personnel pour un utilisateur connecté
 function Home() {
   const { user, loading } = useAuth();
   if (loading) return <p className="p-8 text-slate-600">Chargement...</p>;
-  return <Navigate to={user ? homePath(user.role) : '/login'} replace />;
+  if (user) return <Navigate to={homePath(user.role)} replace />;
+  return <Landing />;
 }
 
 export default function App() {

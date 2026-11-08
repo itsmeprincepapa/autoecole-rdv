@@ -1,7 +1,62 @@
 /* Active Tailwind dans tout le projet */
 @import "tailwindcss";
+/* Polices installées avec npm : aucune dépendance à un service externe */
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/public-sans";
+
+/* Identité visuelle : signalisation routière */
+@theme {
+  --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-sans: "Public Sans Variable", system-ui, sans-serif;
+
+  --color-asphalt: #151c26; /* bitume : textes et sections sombres */
+  --color-signal: #1d4ed8; /* bleu panneau : actions principales */
+  --color-signal-dark: #1e40af;
+  --color-line: #ffc21a; /* ligne jaune : accent sur fond sombre */
+  --color-mist: #edf1f5; /* gris clair : sections alternées */
+  --color-paper: #fafbfc; /* fond de page */
+  --color-navy: #0a1a4a; /* bleu profond : héros et sections fortes */
+}
+
+html {
+  scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-paper);
+  color: var(--color-asphalt);
+  font-family: var(--font-sans);
+}
+
+/* Focus clavier visible partout */
+:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+.on-dark :focus-visible {
+  outline-color: var(--color-line);
+}
+
+/* Animations de la page d'accueil */
+@keyframes kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-kenburns {
+  animation: kenburns 8s ease-out forwards;
+  will-change: transform;
+}
+.animate-marquee { animation: marquee 30s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-kenburns,
+  .animate-marquee { animation: none; }
 }
