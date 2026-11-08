@@ -69,3 +69,49 @@ export function nextDays(count: number): DayOption[] {
     };
   });
 }
+
+
+const localDateFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+// Date locale de l'auto-école (AAAA-MM-JJ) d'un instant donné
+export function toLocalDate(iso: string): string {
+  return localDateFormat.format(new Date(iso));
+}
+
+export interface WeekDay extends DayOption {
+  weekdayLong: string;
+  monthLong: string;
+  isToday: boolean;
+}
+
+// Les 7 jours (lundi à dimanche) d'une semaine : 0 = cette semaine, -1 = la précédente...
+export function weekDays(offsetWeeks: number): WeekDay[] {
+  const today = localDateFormat.format(new Date());
+  const [y, m, d] = today.split('-').map(Number);
+  const todayUtc = new Date(Date.UTC(y, m - 1, d, 12));
+  const sinceMonday = (todayUtc.getUTCDay() + 6) % 7;
+
+  const short = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', weekday: 'short' });
+  const long = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', weekday: 'long' });
+  const monthShort = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'short' });
+  const monthLong = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'long' });
+
+  return Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(Date.UTC(y, m - 1, d - sinceMonday + offsetWeeks * 7 + i, 12));
+    const date = day.toISOString().slice(0, 10);
+    return {
+      date,
+      weekday: short.format(day).replace('.', ''),
+      day: day.getUTCDate(),
+      month: monthShort.format(day).replace('.', ''),
+      weekdayLong: long.format(day),
+      monthLong: monthLong.format(day),
+      isToday: date === today,
+    };
+  });
+}

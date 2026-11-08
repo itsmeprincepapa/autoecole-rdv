@@ -3,8 +3,11 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/useAuth';
 import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
+import ComingSoon from './pages/ComingSoon';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import InstructorLayout from './pages/instructor/InstructorLayout';
+import Planning from './pages/instructor/Planning';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -35,7 +38,7 @@ export default function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/accept-invitation" element={<AcceptInvitation />} />
 
-      {/* Espace élève : le cadre est commun, les pages s'affichent dedans */}
+      {/* Espace élève */}
       <Route
         path="/student"
         element={
@@ -50,14 +53,19 @@ export default function App() {
         <Route path="progress" element={<Progress />} />
       </Route>
 
+      {/* Espace moniteur */}
       <Route
         path="/instructor"
         element={
           <ProtectedRoute roles={['instructor']}>
-            <Dashboard title="Espace moniteur" />
+            <InstructorLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<Planning />} />
+        <Route path="availability" element={<ComingSoon title="Mes disponibilités" />} />
+      </Route>
+
       <Route
         path="/admin"
         element={

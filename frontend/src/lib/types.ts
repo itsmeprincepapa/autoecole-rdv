@@ -56,3 +56,18 @@ export interface LogbookResponse {
   skills: LogbookSkill[];
   lessons: { id: string; startsAt: string; notes: string | null }[];
 }
+
+
+export interface ScheduleAppointment {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  status: AppointmentStatus;
+  student: { id: string; firstName: string; lastName: string };
+  vehicle: { plateNumber: string; model: string };
+}
+
+export interface ScheduleResponse {
+  timeZone: string;
+  appointments: ScheduleAppointment[];
+}
