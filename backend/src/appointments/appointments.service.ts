@@ -238,12 +238,27 @@ export class AppointmentsService {
     });
   }
 
-  // Rendez-vous de l'élève connecté
-  mine(studentId: string) {
-    return this.dataSource.getRepository(Appointment).find({
+   // Rendez-vous de l'élève connecté, avec moniteur et véhicule (sans données privées)
+  async mine(studentId: string) {
+    const rows = await this.dataSource.getRepository(Appointment).find({
       where: { studentId },
+      relations: { instructor: true, vehicle: true },
       order: { startsAt: 'DESC' },
     });
+
+    return rows.map((a) => ({
+      id: a.id,
+      startsAt: a.startsAt,
+      endsAt: a.endsAt,
+      status: a.status,
+      notes: a.notes,
+      instructor: {
+        id: a.instructor.id,
+        firstName: a.instructor.firstName,
+        lastName: a.instructor.lastName,
+      },
+      vehicle: { plateNumber: a.vehicle.plateNumber, model: a.vehicle.model },
+    }));
   }
 
   // Date locale (AAAA-MM-JJ) de l'auto-école pour un instant donné
