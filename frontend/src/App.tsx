@@ -13,6 +13,7 @@ import ResetPassword from './pages/ResetPassword';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentLayout from './pages/student/StudentLayout';
 import VerifyEmail from './pages/VerifyEmail';
+import Book from './pages/student/Book';
 
 // "/" : page d'accueil pour les visiteurs, espace personnel pour un utilisateur connecté
 function Home() {
@@ -43,9 +44,7 @@ export default function App() {
         }
       >
         <Route index element={<StudentDashboard />} />
-        <Route path="book" element={<ComingSoon title="Réserver une leçon" />} />
-        <Route path="lessons" element={<ComingSoon title="Mes leçons" />} />
-        <Route path="progress" element={<ComingSoon title="Ma progression" />} />
+        <Route path="book" element={<Book />} />        <Route path="progress" element={<ComingSoon title="Ma progression" />} />
       </Route>
 
       <Route

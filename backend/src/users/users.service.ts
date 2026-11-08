@@ -92,4 +92,13 @@ export class UsersService {
       isActive ? { isActive } : { isActive, refreshTokenHash: null },
     );
   }
+
+    // Moniteurs actifs et vérifiés : uniquement ce qu'un élève a besoin de voir
+  listInstructors(): Promise<Pick<User, 'id' | 'firstName' | 'lastName'>[]> {
+    return this.usersRepository.find({
+      where: { role: UserRole.INSTRUCTOR, isActive: true, emailVerified: true },
+      select: { id: true, firstName: true, lastName: true },
+      order: { lastName: 'ASC', firstName: 'ASC' },
+    });
+  }
 }

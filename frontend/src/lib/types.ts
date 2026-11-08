@@ -27,3 +27,19 @@ export interface HoursResponse {
   hoursBalance: number;
   history: HoursMovement[];
 }
+
+export interface Instructor {
+  id: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface Slot {
+  startsAt: string;
+  endsAt: string;
+}
+
+export interface SlotsResponse {
+  timeZone: string;
+  slots: Slot[];
+}

@@ -2,13 +2,21 @@ import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from './api';
 
 // Charge une donnée du backend : { data, loading, error, reload }
-export function useFetch<T>(path: string) {
+// path = null : rien n'est chargé (par exemple tant qu'un choix n'est pas fait)
+export function useFetch<T>(path: string | null) {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(path !== null);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
+    if (path === null) {
+      setData(null);
+      setError('');
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
     setError('');
@@ -19,6 +27,7 @@ export function useFetch<T>(path: string) {
       })
       .catch((err) => {
         if (!cancelled) {
+          setData(null);
           setError(err instanceof ApiError ? err.message : 'Une erreur est survenue');
         }
       })
