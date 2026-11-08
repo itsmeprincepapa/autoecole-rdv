@@ -43,3 +43,16 @@ export interface SlotsResponse {
   timeZone: string;
   slots: Slot[];
 }
+
+
+export interface LogbookSkill {
+  id: string;
+  name: string;
+  // 0 = pas encore évalué, de 1 (à découvrir) à 4 (maîtrisé)
+  level: number;
+}
+
+export interface LogbookResponse {
+  skills: LogbookSkill[];
+  lessons: { id: string; startsAt: string; notes: string | null }[];
+}

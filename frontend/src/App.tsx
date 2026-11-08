@@ -3,7 +3,6 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/useAuth';
 import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
-import ComingSoon from './pages/ComingSoon';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import Landing from './pages/Landing';
@@ -12,6 +11,7 @@ import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import Book from './pages/student/Book';
 import Lessons from './pages/student/Lessons';
+import Progress from './pages/student/Progress';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentLayout from './pages/student/StudentLayout';
 import VerifyEmail from './pages/VerifyEmail';
@@ -47,7 +47,7 @@ export default function App() {
         <Route index element={<StudentDashboard />} />
         <Route path="book" element={<Book />} />
         <Route path="lessons" element={<Lessons />} />
-        <Route path="progress" element={<ComingSoon title="Ma progression" />} />
+        <Route path="progress" element={<Progress />} />
       </Route>
 
       <Route
