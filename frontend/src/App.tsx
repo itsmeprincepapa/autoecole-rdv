@@ -3,7 +3,9 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/useAuth';
 import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
-import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLayout from './pages/admin/AdminLayout';
+import ComingSoon from './pages/ComingSoon';
 import ForgotPassword from './pages/ForgotPassword';
 import Availability from './pages/instructor/Availability';
 import InstructorLayout from './pages/instructor/InstructorLayout';
@@ -66,14 +68,20 @@ export default function App() {
         <Route path="availability" element={<Availability />} />
       </Route>
 
+      {/* Espace gérant */}
       <Route
         path="/admin"
         element={
           <ProtectedRoute roles={['admin']}>
-            <Dashboard title="Espace gérant" />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<AdminDashboard />} />
+        <Route path="users" element={<ComingSoon title="Utilisateurs" />} />
+        <Route path="vehicles" element={<ComingSoon title="Véhicules" />} />
+        <Route path="appointments" element={<ComingSoon title="Rendez-vous" />} />
+      </Route>
 
       {/* Toute autre adresse : retour à l'accueil */}
       <Route path="*" element={<Navigate to="/" replace />} />

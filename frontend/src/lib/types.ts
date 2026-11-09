@@ -87,3 +87,31 @@ export interface AvailabilityRange {
   startTime: string; // "08:00:00"
   endTime: string;
 }
+
+
+export interface AdminStats {
+  period: { from: string; to: string; days: number };
+  byStatus: Record<AppointmentStatus, number>;
+  lessonsPerInstructor: { instructorId: string; name: string; lessons: number }[];
+  offeredSlots: number;
+  bookedSlots: number;
+  fillRate: number;
+}
+
+export interface AdminAppointment {
+  id: string;
+  startsAt: string;
+  endsAt: string;
+  status: AppointmentStatus;
+  cancelledAt: string | null;
+  student: { id: string; firstName: string; lastName: string };
+  instructor: { id: string; firstName: string; lastName: string };
+  vehicle: { plateNumber: string; model: string };
+}
+
+export interface AdminAppointmentsResponse {
+  total: number;
+  page: number;
+  limit: number;
+  items: AdminAppointment[];
+}
