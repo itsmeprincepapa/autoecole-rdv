@@ -75,7 +75,7 @@ export default function Book() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 lg:pb-0">
       <h1 className="text-balance font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
         Réserver une leçon
       </h1>
@@ -223,8 +223,8 @@ export default function Book() {
           </section>
         </div>
 
-        {/* Récapitulatif et confirmation */}
-        <aside className="rounded-3xl bg-navy p-7 text-white lg:sticky lg:top-24">
+        {/* Récapitulatif et confirmation (grands écrans) */}
+        <aside className="hidden rounded-3xl bg-navy p-7 text-white lg:sticky lg:top-24 lg:block">
           <h2 className="font-display text-xl font-bold">Votre réservation</h2>
 
           {bookedAt ? (
@@ -312,6 +312,53 @@ export default function Book() {
           )}
         </aside>
       </div>
+
+      {/* Barre de confirmation fixe en bas de l'écran (petits écrans) :
+          le bouton est toujours visible, sans avoir à descendre dans la page */}
+      {(bookedAt || (slot && instructor)) && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white p-4 shadow-[0_-8px_24px_-12px_rgba(21,28,38,0.35)] lg:hidden">
+          {bookedAt ? (
+            <div role="status" className="mx-auto flex max-w-xl items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-green-800">
+                Leçon réservée. Email de confirmation envoyé.
+              </p>
+              <Link
+                to="/student/lessons"
+                className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-bold text-white"
+              >
+                Mes leçons
+              </Link>
+            </div>
+          ) : (
+            slot &&
+            instructor && (
+              <div className="mx-auto max-w-xl">
+                <p className="font-display text-lg font-bold capitalize">{formatDateTime(slot)}</p>
+                <p className="text-sm text-slate-600">
+                  avec {instructor.firstName} {instructor.lastName} · 1 heure
+                </p>
+                {error && (
+                  <p role="alert" className="mt-2 rounded-lg bg-red-100 p-2 text-sm text-red-800">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={confirm}
+                  disabled={submitting || noHours}
+                  className="mt-3 w-full rounded-lg bg-signal py-3 font-bold text-white hover:bg-signal-dark disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {noHours
+                    ? "Plus d'heures disponibles"
+                    : submitting
+                      ? 'Réservation...'
+                      : 'Confirmer la réservation'}
+                </button>
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }
