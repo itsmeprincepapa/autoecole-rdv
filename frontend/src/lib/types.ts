@@ -71,3 +71,10 @@ export interface ScheduleResponse {
   timeZone: string;
   appointments: ScheduleAppointment[];
 }
+
+
+export interface Skill {
+  id: string;
+  name: string;
+  position: number;
+}
