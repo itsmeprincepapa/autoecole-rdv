@@ -115,3 +115,25 @@ export interface AdminAppointmentsResponse {
   limit: number;
   items: AdminAppointment[];
 }
+
+
+export type Role = 'student' | 'instructor' | 'admin';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
+  emailVerified: boolean;
+  isActive: boolean;
+  hoursBalance: number;
+  createdAt: string;
+}
+
+export interface UsersResponse {
+  items: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
+}
