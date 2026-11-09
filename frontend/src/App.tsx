@@ -3,9 +3,9 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import { useAuth } from './auth/useAuth';
 import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
-import ComingSoon from './pages/ComingSoon';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
+import Availability from './pages/instructor/Availability';
 import InstructorLayout from './pages/instructor/InstructorLayout';
 import Planning from './pages/instructor/Planning';
 import Landing from './pages/Landing';
@@ -63,7 +63,7 @@ export default function App() {
         }
       >
         <Route index element={<Planning />} />
-        <Route path="availability" element={<ComingSoon title="Mes disponibilités" />} />
+        <Route path="availability" element={<Availability />} />
       </Route>
 
       <Route

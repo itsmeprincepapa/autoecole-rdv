@@ -78,3 +78,12 @@ export interface Skill {
   name: string;
   position: number;
 }
+
+
+export interface AvailabilityRange {
+  id: string;
+  // 0 = dimanche, 1 = lundi ... 6 = samedi
+  dayOfWeek: number;
+  startTime: string; // "08:00:00"
+  endTime: string;
+}
