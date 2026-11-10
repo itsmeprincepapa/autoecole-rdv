@@ -105,6 +105,7 @@ export default function AdminDashboard() {
           value={data ? `${data.fillRate} %` : '...'}
           hint={data ? `${data.bookedSlots} réservés sur ${data.offeredSlots} proposés` : undefined}
         />
+
         <Kpi label="Leçons ce mois" value={data ? String(lessons) : '...'} hint="hors annulées" />
         <Kpi
           label="Annulations"

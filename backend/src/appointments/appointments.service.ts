@@ -257,7 +257,11 @@ export class AppointmentsService {
         firstName: a.instructor.firstName,
         lastName: a.instructor.lastName,
       },
-      vehicle: { plateNumber: a.vehicle.plateNumber, model: a.vehicle.model },
+            vehicle: {
+        plateNumber: a.vehicle.plateNumber,
+        model: a.vehicle.model,
+        photoUrl: a.vehicle.photoUrl,
+      },
     }));
   }
 

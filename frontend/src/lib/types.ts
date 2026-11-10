@@ -9,7 +9,7 @@ export interface Appointment {
   status: AppointmentStatus;
   notes: string | null;
   instructor: { id: string; firstName: string; lastName: string };
-  vehicle: { plateNumber: string; model: string };
+    vehicle: { plateNumber: string; model: string; photoUrl?: string | null };
 }
 
 export type HoursMovementType = 'credit' | 'adjustment' | 'booking' | 'refund';
@@ -136,4 +136,16 @@ export interface UsersResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+
+export interface Vehicle {
+  id: string;
+  plateNumber: string;
+  model: string;
+  isAvailable: boolean;
+    unavailableReason: string | null;
+  photoUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
 }

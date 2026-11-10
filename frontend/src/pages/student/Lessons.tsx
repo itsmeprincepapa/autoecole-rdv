@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, ApiError } from '../../lib/api';
+import { api, ApiError, assetUrl } from '../../lib/api';
 import { formatDateTime } from '../../lib/format';
 import type { Appointment, AppointmentStatus } from '../../lib/types';
 import { useFetch } from '../../lib/useFetch';
@@ -149,9 +149,17 @@ export default function Lessons() {
                   <p className="mt-1 text-slate-700">
                     Moniteur : {lesson.instructor.firstName} {lesson.instructor.lastName}
                   </p>
-                  <p className="text-slate-700">
+                                    <p className="text-slate-700">
                     Véhicule : {lesson.vehicle.model} ({lesson.vehicle.plateNumber})
                   </p>
+                  {lesson.vehicle.photoUrl && (
+                    <img
+                      src={assetUrl(lesson.vehicle.photoUrl)}
+                      alt={`${lesson.vehicle.model}, plaque ${lesson.vehicle.plateNumber}`}
+                      loading="lazy"
+                      className="mt-3 h-28 w-48 rounded-xl object-cover"
+                    />
+                  )}
                 </div>
                 <span className={`rounded-full px-3 py-1 text-sm font-semibold ${status.style}`}>
                   {status.label}

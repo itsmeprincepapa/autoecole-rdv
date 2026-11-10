@@ -27,6 +27,10 @@ export class Vehicle {
   @Column({ type: 'varchar', length: 255, nullable: true })
   unavailableReason: string | null;
 
+    // Chemin public de la photo (ex : /uploads/vehicles/xxxx.jpg), null s'il n'y en a pas
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  photoUrl: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

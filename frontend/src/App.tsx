@@ -5,8 +5,9 @@ import { homePath } from './lib/roles';
 import AcceptInvitation from './pages/AcceptInvitation';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLayout from './pages/admin/AdminLayout';
+import Appointments from './pages/admin/Appointments';
 import Users from './pages/admin/Users';
-import ComingSoon from './pages/ComingSoon';
+import Vehicles from './pages/admin/Vehicles';
 import ForgotPassword from './pages/ForgotPassword';
 import Availability from './pages/instructor/Availability';
 import InstructorLayout from './pages/instructor/InstructorLayout';
@@ -80,8 +81,8 @@ export default function App() {
       >
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<Users />} />
-        <Route path="vehicles" element={<ComingSoon title="Véhicules" />} />
-        <Route path="appointments" element={<ComingSoon title="Rendez-vous" />} />
+        <Route path="vehicles" element={<Vehicles />} />
+        <Route path="appointments" element={<Appointments />} />
       </Route>
 
       {/* Toute autre adresse : retour à l'accueil */}

@@ -9,6 +9,9 @@ const REFRESH_KEY = 'refreshToken';
 // Événement émis quand la session ne peut plus être renouvelée
 export const SESSION_EXPIRED_EVENT = 'session-expired';
 
+// Adresse complète d'un fichier hébergé par le backend (ex : une photo)
+export const assetUrl = (path: string) => `${API_URL}${path}`;
+
 export const tokenStore = {
   getAccess: () => localStorage.getItem(ACCESS_KEY),
   getRefresh: () => localStorage.getItem(REFRESH_KEY),
@@ -77,6 +80,7 @@ async function refreshTokens(): Promise<boolean> {
 
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  // Un objet est envoyé en JSON ; un FormData (envoi de fichier) est envoyé tel quel
   body?: unknown;
   // false pour les routes publiques (login, register...)
   auth?: boolean;
@@ -86,16 +90,20 @@ export async function api<T>(
   path: string,
   { method = 'GET', body, auth = true }: ApiOptions = {},
 ): Promise<T> {
+  const isForm = body instanceof FormData;
+
   const send = () => {
     const headers: Record<string, string> = {};
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    // Pour un fichier, le navigateur fixe lui-même le Content-Type
+    if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
     const token = tokenStore.getAccess();
     if (auth && token) headers.Authorization = `Bearer ${token}`;
 
     return fetch(`${API_URL}${path}`, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined ? undefined : isForm ? (body as FormData) : JSON.stringify(body),
     });
   };
 
