@@ -5,10 +5,12 @@ Application web de prise de rendez-vous pour une auto-école. Les **élèves** r
 Le point central du projet : **un moniteur et un véhicule ne peuvent jamais être réservés deux fois sur le même créneau**, même si deux élèves cliquent au même instant. Cette règle est garantie par PostgreSQL lui-même, pas seulement par le code.
 
 ## Aperçu
+
 | ACCUEUIL DU SITE | 
 |---|---|
 | ![Acceuil](docs/acceuil.png) |
-| Tableau de bord du gerant| le moniteur |
+
+| TABLEAU DE BORD DU GERANT | ESPACE MONITEUR |
 |---|---|
 | ![Tableau de bord du Gerant](docs/tableaubord.png) | ![Espace Moniteur](docs/moniteur.png) |
 
