@@ -8,7 +8,7 @@ Le point central du projet : **un moniteur et un véhicule ne peuvent jamais êt
 
 | ACCUEUIL DU SITE | 
 |---|---|
-| ![Acceuil](docs/acceuil.png) |
+| ![Acceuil](docs/accueil.png) |
 
 | TABLEAU DE BORD DU GERANT | ESPACE MONITEUR |
 |---|---|
