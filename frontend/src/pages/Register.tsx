@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import AuthLayout from '../components/AuthLayout';
+import { errorBox, linkClass, primaryButton } from '../components/authStyles';
 import FormField from '../components/FormField';
 import { api, ApiError } from '../lib/api';
 import { homePath } from '../lib/roles';
@@ -22,6 +23,13 @@ export default function Register() {
   if (!loading && user) {
     return <Navigate to={homePath(user.role)} replace />;
   }
+
+  // Indicateurs visuels des règles du mot de passe
+  const rules = [
+    { label: '8 caractères minimum', ok: password.length >= 8 },
+    { label: 'Une lettre', ok: /[A-Za-z]/.test(password) },
+    { label: 'Un chiffre', ok: /\d/.test(password) },
+  ];
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -70,7 +78,7 @@ export default function Register() {
       title="Créer un compte"
       subtitle="Un code de vérification vous sera envoyé par email."
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-2 gap-3">
           <FormField
             label="Prénom"
@@ -96,20 +104,35 @@ export default function Register() {
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="vous@exemple.com"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <FormField
-          label="Mot de passe"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          maxLength={72}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="space-y-2.5">
+          <FormField
+            label="Mot de passe"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            maxLength={72}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <ul className="flex flex-wrap gap-2 text-xs">
+            {rules.map((rule) => (
+              <li
+                key={rule.label}
+                className={`rounded-full px-2.5 py-1 font-medium transition ${
+                  rule.ok ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {rule.ok ? '✓' : '○'} {rule.label}
+              </li>
+            ))}
+          </ul>
+        </div>
         <FormField
           label="Confirmer le mot de passe"
           name="confirm"
@@ -120,28 +143,21 @@ export default function Register() {
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
         />
-        <p className="text-xs text-slate-500">
-          8 caractères minimum, avec au moins une lettre et un chiffre.
-        </p>
 
         {error && (
-          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className={errorBox}>
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className={primaryButton}>
           {submitting ? 'Création...' : 'Créer mon compte'}
         </button>
       </form>
 
-      <p className="mt-4 text-center text-sm">
+      <p className="mt-6 border-t border-slate-100 pt-5 text-center text-sm text-slate-600">
         Déjà un compte ?{' '}
-        <Link to="/login" className="text-blue-700 underline">
+        <Link to="/login" className={linkClass}>
           Se connecter
         </Link>
       </p>

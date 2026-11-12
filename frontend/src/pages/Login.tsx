@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/useAuth';
 import AuthLayout from '../components/AuthLayout';
+import { errorBox, linkClass, primaryButton } from '../components/authStyles';
 import FormField from '../components/FormField';
 import { ApiError } from '../lib/api';
 import { homePath } from '../lib/roles';
@@ -46,12 +47,13 @@ export default function Login() {
 
   return (
     <AuthLayout title="Connexion" subtitle="Accédez à votre espace.">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <FormField
           label="Adresse email"
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="vous@exemple.com"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -61,13 +63,14 @@ export default function Login() {
           name="password"
           type="password"
           autoComplete="current-password"
+          placeholder="Votre mot de passe"
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         {error && (
-          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className={errorBox}>
             {error}
             {needsVerification && (
               <>
@@ -83,20 +86,16 @@ export default function Login() {
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className={primaryButton}>
           {submitting ? 'Connexion...' : 'Se connecter'}
         </button>
       </form>
 
-      <div className="mt-4 flex justify-between text-sm">
-        <Link to="/forgot-password" className="text-blue-700 underline">
+      <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5 text-sm">
+        <Link to="/forgot-password" className={linkClass}>
           Mot de passe oublié ?
         </Link>
-        <Link to="/register" className="text-blue-700 underline">
+        <Link to="/register" className={linkClass}>
           Créer un compte
         </Link>
       </div>

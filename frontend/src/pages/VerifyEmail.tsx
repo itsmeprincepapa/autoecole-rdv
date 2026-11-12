@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import {
+  errorBox,
+  infoBox,
+  linkClass,
+  primaryButton,
+  subtleLinkClass,
+  successBox,
+} from '../components/authStyles';
+import CodeInput from '../components/CodeInput';
 import { api, ApiError } from '../lib/api';
 
 const RESEND_DELAY = 60;
@@ -88,10 +97,8 @@ export default function VerifyEmail() {
   if (verified) {
     return (
       <AuthLayout title="Email vérifié">
-        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">
-          Votre compte est activé. Redirection vers la connexion...
-        </p>
-        <Link to="/login" className="mt-4 inline-block text-sm text-blue-700 underline">
+        <p className={successBox}>Votre compte est activé. Redirection vers la connexion...</p>
+        <Link to="/login" className={`mt-5 inline-block text-sm ${linkClass}`}>
           Aller à la connexion
         </Link>
       </AuthLayout>
@@ -103,52 +110,36 @@ export default function VerifyEmail() {
       title="Vérifiez votre email"
       subtitle={`Saisissez le code à 6 chiffres envoyé à ${email}. Il est valable 10 minutes.`}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="code" className="block text-sm font-medium text-slate-700">
-            Code de vérification
-          </label>
-          <input
-            id="code"
-            name="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            placeholder="000000"
-            required
-            value={code}
-            // Seuls les chiffres sont acceptés
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-3 text-center text-2xl tracking-[0.5em] focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Une case par chiffre : seuls les chiffres sont acceptés */}
+        <CodeInput value={code} onChange={setCode} />
 
         {error && (
-          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className={errorBox}>
             {error}
           </p>
         )}
-        {info && <p className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">{info}</p>}
+        {info && <p className={infoBox}>{info}</p>}
 
         <button
           type="submit"
           disabled={submitting || code.length !== 6}
-          className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className={primaryButton}
         >
           {submitting ? 'Vérification...' : 'Vérifier'}
         </button>
       </form>
 
-      <div className="mt-4 flex items-center justify-between text-sm">
+      <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5 text-sm">
         <button
           type="button"
           onClick={handleResend}
           disabled={countdown > 0}
-          className="text-blue-700 underline disabled:text-slate-400 disabled:no-underline"
+          className={`${linkClass} disabled:cursor-not-allowed disabled:font-normal disabled:text-slate-400 disabled:no-underline`}
         >
           {countdown > 0 ? `Renvoyer le code (${countdown} s)` : 'Renvoyer le code'}
         </button>
-        <Link to="/login" className="text-slate-600 underline">
+        <Link to="/login" className={subtleLinkClass}>
           Retour
         </Link>
       </div>

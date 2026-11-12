@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import { buttonLink, errorBox, successBox } from '../components/authStyles';
 import SetPasswordForm from '../components/SetPasswordForm';
 
 export default function AcceptInvitation() {
@@ -11,7 +12,7 @@ export default function AcceptInvitation() {
   if (!token) {
     return (
       <AuthLayout title="Invitation invalide">
-        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+        <p className={errorBox}>
           Ce lien est incomplet. Demandez au gérant de renvoyer l'invitation.
         </p>
       </AuthLayout>
@@ -21,11 +22,8 @@ export default function AcceptInvitation() {
   if (doneMessage) {
     return (
       <AuthLayout title="Compte activé">
-        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">{doneMessage}</p>
-        <Link
-          to="/login"
-          className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
+        <p className={successBox}>{doneMessage}</p>
+        <Link to="/login" className={buttonLink}>
           Se connecter
         </Link>
       </AuthLayout>

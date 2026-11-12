@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
+import { errorBox, linkClass, primaryButton, successBox } from '../components/authStyles';
 import FormField from '../components/FormField';
 import { api, ApiError } from '../lib/api';
 
@@ -39,11 +40,11 @@ export default function ForgotPassword() {
   if (sent) {
     return (
       <AuthLayout title="Vérifiez votre boîte mail">
-        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-800">
+        <p className={successBox}>
           Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être
           envoyé. Il est valable 30 minutes et ne peut servir qu'une fois.
         </p>
-        <Link to="/login" className="mt-4 inline-block text-sm text-blue-700 underline">
+        <Link to="/login" className={`mt-5 inline-block text-sm ${linkClass}`}>
           Retour à la connexion
         </Link>
       </AuthLayout>
@@ -55,35 +56,34 @@ export default function ForgotPassword() {
       title="Mot de passe oublié"
       subtitle="Saisissez votre adresse email pour recevoir un lien de réinitialisation."
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <FormField
           label="Adresse email"
           name="email"
           type="email"
           autoComplete="email"
+          placeholder="vous@exemple.com"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
         {error && (
-          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <p role="alert" className={errorBox}>
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-blue-600 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className={primaryButton}>
           {submitting ? 'Envoi...' : 'Envoyer le lien'}
         </button>
       </form>
 
-      <Link to="/login" className="mt-4 inline-block text-sm text-blue-700 underline">
-        Retour à la connexion
-      </Link>
+      <div className="mt-6 border-t border-slate-100 pt-5 text-sm">
+        <Link to="/login" className={linkClass}>
+          ← Retour à la connexion
+        </Link>
+      </div>
     </AuthLayout>
   );
 }
