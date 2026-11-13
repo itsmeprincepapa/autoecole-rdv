@@ -27,9 +27,16 @@ export class Vehicle {
   @Column({ type: 'varchar', length: 255, nullable: true })
   unavailableReason: string | null;
 
-    // Chemin public de la photo (ex : /uploads/vehicles/xxxx.jpg), null s'il n'y en a pas
+  // Adresse publique de la photo (ex : /vehicle-photos/<id>?v=123), null s'il n'y en a pas
   @Column({ type: 'varchar', length: 255, nullable: true })
   photoUrl: string | null;
+
+  // Contenu de la photo : jamais chargé sauf demande explicite (select: false)
+  @Column({ type: 'bytea', nullable: true, select: false })
+  photoData: Buffer | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true, select: false })
+  photoMime: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
